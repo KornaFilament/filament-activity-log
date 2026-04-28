@@ -22,11 +22,12 @@ This package adds a page to the Filament Admin panel to view the activity log ge
 
 ## Installation
 
-| Plugin Version | Filament Version | PHP Version |
-|----------------|------------------|-------------|
-| 0.1.x          | 2.x              | \> 8.0      |
-| 1.x            | 3.x              | \> 8.1      |
-| 2.x            | 4.x,  5.x        | \> 8.1      |
+| Plugin Version | Filament Version | Activitylog | PHP Version |
+|----------------|------------------|-------------|-------------|
+| 0.1.x          | 2.x              | 4.x         | \> 8.0      |
+| 1.x            | 3.x              | 4.x         | \> 8.1      |
+| 2.x            | 4.x, 5.x         | 4.x         | \> 8.1      |
+| 3.x            | 5.x              | 5.x         | \> 8.4      |
 
 Install via Composer.
 
@@ -37,7 +38,7 @@ composer require pxlrbt/filament-activity-log
 ```
 
 > **Warning**
-> This plugin only offers a page to show activities related to your model. You need [`spatie/laravel-activitylog`](https://github.com/spatie/laravel-activitylog) installed and configured for it to work. It is important you are using the `LogsActivity` trait as per [Spatie's docs](https://spatie.be/docs/laravel-activitylog/v4/advanced-usage/logging-model-events) for this work as we use the '->activities()' method of the trait.
+> This plugin only offers a page to show activities related to your model. You need [`spatie/laravel-activitylog`](https://github.com/spatie/laravel-activitylog) installed and configured for it to work. It is important you are using the `LogsActivity` trait as per [Spatie's docs](https://spatie.be/docs/laravel-activitylog/v5/advanced-usage/logging-model-events) for this work as we use the `->activitiesAsSubject()` method of the trait.
 
 ## Filament v4 Upgrade
 Make sure you have a custom theme, add this line and recompile: `@import '../../../../vendor/pxlrbt/filament-activity-log/resources/css/styles.css';`
@@ -98,7 +99,7 @@ class Order extends Model
 }
 ```
 
-See https://spatie.be/docs/laravel-activitylog/v4/advanced-usage/logging-model-events for more information on the topic.
+See https://spatie.be/docs/laravel-activitylog/v5/advanced-usage/logging-model-events for more information on the topic.
 
 ## Contributing
 

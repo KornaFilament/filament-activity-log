@@ -46,7 +46,7 @@ abstract class ListActivities extends Page implements HasForms
     public function getActivities()
     {
         return $this->paginateQuery(
-            $this->record->activities()->with('causer')->latest()->getQuery()
+            $this->record->activitiesAsSubject()->with('causer')->latest()->getQuery()
         );
     }
 
@@ -105,20 +105,20 @@ abstract class ListActivities extends Page implements HasForms
             abort(403);
         }
 
-        $activity = $this->record->activities()
+        $activity = $this->record->activitiesAsSubject()
             ->whereKey($key)
             ->first();
 
-        $oldProperties = data_get($activity, 'properties.old');
+        $oldAttributes = data_get($activity, 'attribute_changes.old');
 
-        if ($oldProperties === null) {
+        if ($oldAttributes === null) {
             $this->sendRestoreFailureNotification();
 
             return;
         }
 
         try {
-            $this->record->update($oldProperties);
+            $this->record->update($oldAttributes);
 
             $this->sendRestoreSuccessNotification();
         } catch (Exception $e) {
