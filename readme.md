@@ -13,6 +13,13 @@ This package adds pages to the Filament Admin panel to view the activity log gen
 
 ## Installation
 
+| Plugin Version | Filament Version | Activitylog | PHP Version |
+|----------------|------------------|-------------|-------------|
+| 0.1.x          | 2.x              | 4.x         | \> 8.0      |
+| 1.x            | 3.x              | 4.x         | \> 8.1      |
+| 2.x            | 4.x, 5.x         | 4.x         | \> 8.1      |
+| 3.x            | 5.x              | 5.x         | \> 8.4      |
+
 Install via Composer.
 
 **Requires PHP 8.1, Filament 4.0 or 5.0, and spatie/laravel-activitylog 4.7 or 5.0**
@@ -21,8 +28,11 @@ Install via Composer.
 composer require pxlrbt/filament-activity-log
 ```
 
-> **Info**
+> **Warning**
 > This plugin offers two pages: one listing activities **on a subject** (use `ListActivitiesBySubject`) and one listing activities **caused by** a record such as a user (use `ListActivitiesByCauser`). You need [`spatie/laravel-activitylog`](https://github.com/spatie/laravel-activitylog) installed and configured for it to work. The subject page uses the `LogsActivity` trait's `activitiesAsSubject()` relation; the causer page uses the `CausesActivity` trait's `activitiesAsCauser()` relation.
+
+## Filament v4 Upgrade
+Make sure you have a custom theme, add this line and recompile: `@import '../../../../vendor/pxlrbt/filament-activity-log/resources/css/styles.css';`
 
 ## Usage
 
@@ -121,6 +131,8 @@ class ListUserActivities extends ListActivitiesByCauser
     protected static string $resource = UserResource::class;
 }
 ```
+
+See https://spatie.be/docs/laravel-activitylog/v5/advanced-usage/logging-model-events for more information on the topic.
 
 ### Register the page
 
