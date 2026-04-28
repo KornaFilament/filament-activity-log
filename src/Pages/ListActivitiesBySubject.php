@@ -109,16 +109,16 @@ abstract class ListActivitiesBySubject extends Page implements HasForms
             ->whereKey($key)
             ->first();
 
-        $oldProperties = data_get($activity, 'attribute_changes.old');
+        $oldAttributes = data_get($activity, 'attribute_changes.old');
 
-        if ($oldProperties === null) {
+        if ($oldAttributes === null) {
             $this->sendRestoreFailureNotification();
 
             return;
         }
 
         try {
-            $this->record->update($oldProperties);
+            $this->record->update($oldAttributes);
 
             $this->sendRestoreSuccessNotification();
         } catch (Exception $e) {
