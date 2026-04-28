@@ -2,28 +2,40 @@
 
 namespace pxlrbt\FilamentActivityLog\Pages;
 
+use Exception;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\MorphToSelect;
-use Filament\Resources\Form;
-use Filament\Resources\Pages\Concerns\HasRecordBreadcrumb;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Notifications\Notification;
+use Filament\Pages\Concerns\InteractsWithFormActions;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
-use Filament\Tables\Concerns\CanPaginateRecords;
+use Filament\Schemas\Schema;
+use Filament\Tables\Enums\PaginationMode;
 use Illuminate\Support\Collection;
+use Livewire\WithPagination;
+use pxlrbt\FilamentActivityLog\Pages\Concerns\CanPaginate;
 
-abstract class ListActivities extends Page
+abstract class ListActivities extends Page implements HasForms
 {
+    use CanPaginate;
+    use InteractsWithFormActions;
     use InteractsWithRecord;
-    use CanPaginateRecords;
-    use HasRecordBreadcrumb;
+    use WithPagination;
 
-    protected static string $view = 'filament-activity-log::pages.list-activities';
+    protected string $view = 'filament-activity-log::pages.list-activities';
 
     protected static Collection $fieldLabelMap;
 
     public function mount($record)
     {
         $this->record = $this->resolveRecord($record);
+        $this->recordsPerPage = $this->getDefaultRecordsPerPageSelectOption();
+    }
+
+    public function getBreadcrumb(): string
+    {
+        return static::$breadcrumb ?? __('filament-activity-log::activities.breadcrumb');
     }
 
     public function getTitle(): string
@@ -33,9 +45,14 @@ abstract class ListActivities extends Page
 
     public function getActivities()
     {
-        return $this->paginateTableQuery(
-            $this->record->activities()->latest()->getQuery()
+        return $this->paginateQuery(
+            $this->record->activities()->with('causer')->latest()->getQuery()
         );
+    }
+
+    public function getPaginationMode(): PaginationMode
+    {
+        return PaginationMode::Default;
     }
 
     public function getFieldLabel(string $name): string
@@ -47,9 +64,9 @@ abstract class ListActivities extends Page
 
     protected function createFieldLabelMap(): Collection
     {
-        $form = static::getResource()::form(new Form());
+        $schema = static::getResource()::form(new Schema($this));
 
-        $components = collect($form->getSchema());
+        $components = collect($schema->getComponents());
         $extracted = collect();
 
         while (($component = $components->shift()) !== null) {
@@ -77,18 +94,52 @@ abstract class ListActivities extends Page
             ]);
     }
 
-    protected function getIdentifiedTableQueryStringPropertyNameFor(string $property): string
+    public function canRestoreActivity(): bool
     {
-        return $property;
+        return static::getResource()::canRestore($this->record);
     }
 
-    protected function getDefaultTableRecordsPerPageSelectOption(): int
+    public function restoreActivity(int|string $key)
     {
-        return 10;
+        if (! $this->canRestoreActivity()) {
+            abort(403);
+        }
+
+        $activity = $this->record->activities()
+            ->whereKey($key)
+            ->first();
+
+        $oldProperties = data_get($activity, 'properties.old');
+
+        if ($oldProperties === null) {
+            $this->sendRestoreFailureNotification();
+
+            return;
+        }
+
+        try {
+            $this->record->update($oldProperties);
+
+            $this->sendRestoreSuccessNotification();
+        } catch (Exception $e) {
+            $this->sendRestoreFailureNotification($e->getMessage());
+        }
     }
 
-    protected function getTableRecordsPerPageSelectOptions(): array
+    protected function sendRestoreSuccessNotification(): Notification
     {
-        return [10, 25, 50];
+        return Notification::make()
+            ->title(__('filament-activity-log::activities.events.restore_successful'))
+            ->success()
+            ->send();
+    }
+
+    protected function sendRestoreFailureNotification(?string $message = null): Notification
+    {
+        return Notification::make()
+            ->title(__('filament-activity-log::activities.events.restore_failed'))
+            ->body($message)
+            ->danger()
+            ->send();
     }
 }

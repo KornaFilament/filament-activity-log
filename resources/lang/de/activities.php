@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'breadcrumb' => 'Historie',
+
     'title' => 'Historie :record',
 
     'default_datetime_format' => 'd.m.Y, H:i:s \U\h\r',
@@ -9,6 +11,7 @@ return [
         'field' => 'Feld',
         'old' => 'Alt',
         'new' => 'Neu',
+        'restore' => 'Wiederherstellen',
     ],
 
     'events' => [
@@ -16,5 +19,7 @@ return [
         'created' => 'Erstellt',
         'deleted' => 'Gelöscht',
         'restored' => 'Wiederhergestellt',
+        'restore_successful' => 'Erfolgreich wiederhergestellt',
+        'restore_failed' => 'Wiederherstellung fehlgeschlagen',
     ],
 ];
