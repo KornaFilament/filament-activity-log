@@ -15,22 +15,24 @@ This package adds pages to the Filament Admin panel to view the activity log gen
 
 Install via Composer.
 
-**Requires PHP 8.0 and Filament 2.0**
+**Requires PHP 8.1, Filament 4.0 or 5.0, and spatie/laravel-activitylog 4.7 or 5.0**
 
 ```bash
 composer require pxlrbt/filament-activity-log
 ```
 
 > **Info**
-> This plugin only offers a page to show activities related to your model. You need [`spatie/laravel-activitylog`](https://github.com/spatie/laravel-activitylog) installed and configured for it to work. It is important you are using the `LogsActivity` trait as per [Spatie's docs](https://spatie.be/docs/laravel-activitylog/v4/advanced-usage/logging-model-events) for this work as we use the '->activities()' method of the trait.
+> This plugin offers two pages: one listing activities **on a subject** (use `ListActivitiesBySubject`) and one listing activities **caused by** a record such as a user (use `ListActivitiesByCauser`). You need [`spatie/laravel-activitylog`](https://github.com/spatie/laravel-activitylog) installed and configured for it to work. The subject page uses the `LogsActivity` trait's `activitiesAsSubject()` relation; the causer page uses the `CausesActivity` trait's `activitiesAsCauser()` relation.
 
 ## Usage
 
 Make sure you use a **custom theme** and the vendor folder for this plugins is published, so that it includes the Tailwind CSS classes.
 
-## Listing activities for a resource
+## Listing activities for a subject
 
 ![Screenshot](./.github/resources/screenshot.png)
+
+Use `ListActivitiesBySubject` to show all activities recorded **on** a record (e.g. every change to an order).
 
 ### Setup spatie/laravel-activitylog
 
@@ -39,27 +41,33 @@ Make sure your resource model uses the `LogsActivity` trait.
 ```php
 <?php
 
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+
 class Order extends Model
 {
     use LogsActivity;
+}
 ```
 
-### Create a ListActivities page
+### Create a ListActivitiesBySubject page
 
-Create the page inside your resources `Pages/` directory. Replace `OrderResource` with your resource. 
+Create the page inside your resource's `Pages/` directory. Replace `OrderResource` with your resource.
 
 ```php
 <?php
 
-namespace App\Filament\Resources\OrderResource\Pages;
+namespace App\Filament\Resources\Orders\Pages;
 
-use pxlrbt\FilamentActivityLog\Pages\ListActivities;
+use pxlrbt\FilamentActivityLog\Pages\ListActivitiesBySubject;
 
-class ListOrderActivites extends ListActivities
+class ListOrderActivities extends ListActivitiesBySubject
 {
     protected static string $resource = OrderResource::class;
 }
 ```
+
+> **Note**
+> The legacy class `ListActivities` is kept as an abstract alias of `ListActivitiesBySubject`, so existing subclasses continue to work.
 
 ### Register the page
 
@@ -71,40 +79,44 @@ public static function getPages(): array
     return [
         'index' => Pages\ListOrders::route('/'),
         'create' => Pages\CreateOrder::route('/create'),
-        'activities' => Pages\ListOrderActivites::route('/{record}/activities'),
+        'activities' => Pages\ListOrderActivities::route('/{record}/activities'),
         'edit' => Pages\EditOrder::route('/{record}/edit'),
     ];
 }
 ```
 
 
-## Listing activities for a user
+## Listing activities caused by a record
+
+Use `ListActivitiesByCauser` to show all activities a record (typically a user) has caused across every subject. Each row links to the affected subject's resource when one is registered.
 
 ### Setup spatie/laravel-activitylog
 
 Make sure your user model uses the `CausesActivity` trait.
+
 ```php
 <?php
 
-use Spatie\Activitylog\Traits\CausesActivity;
+use Spatie\Activitylog\Models\Concerns\CausesActivity;
 
 class User extends Authenticatable implements FilamentUser
 {
     use CausesActivity;
+}
 ```
 
-### Create a ListActions page
+### Create a ListActivitiesByCauser page
 
-Create the page inside your UserResource's `Pages/` directory.
+Create the page inside your `UserResource`'s `Pages/` directory.
 
 ```php
 <?php
 
-namespace App\Filament\Resources\UserResource\Pages;
+namespace App\Filament\Resources\Users\Pages;
 
-use pxlrbt\FilamentActivityLog\Pages\ListActions;
+use pxlrbt\FilamentActivityLog\Pages\ListActivitiesByCauser;
 
-class ListUserActions extends ListActions
+class ListUserActivities extends ListActivitiesByCauser
 {
     protected static string $resource = UserResource::class;
 }
@@ -120,7 +132,7 @@ public static function getPages(): array
     return [
         'index' => Pages\ListUsers::route('/'),
         'create' => Pages\CreateUser::route('/create'),
-        'activities' => Pages\ListUserActionsActivites::route('/{record}/activities'),
+        'activities' => Pages\ListUserActivities::route('/{record}/activities'),
         'edit' => Pages\EditUser::route('/{record}/edit'),
     ];
 }

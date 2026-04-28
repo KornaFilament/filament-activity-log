@@ -7,7 +7,7 @@
 
             @php
                 /* @var \Spatie\Activitylog\Models\Activity $activityItem */
-                $changes = $activityItem->getChangesAttribute();
+                $changes = $activityItem->attribute_changes ?? collect();
             @endphp
 
             <div @class([
